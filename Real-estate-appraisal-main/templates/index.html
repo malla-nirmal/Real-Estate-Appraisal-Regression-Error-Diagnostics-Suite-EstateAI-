@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EstateAI — AI-Powered Property Valuation</title>
+    <meta name="description" content="Predict residential property sale prices instantly using machine learning trained on real Ames housing data.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+<!-- ─── NAVBAR ─────────────────────────────────────── -->
+<nav class="navbar">
+    <div class="nav-inner">
+        <a href="/" class="logo">EstateAI</a>
+        <div class="nav-links">
+            <a href="/" class="nav-link active">Predict</a>
+            <a href="/diagnostics" class="nav-link">Diagnostics</a>
+            <a href="#about" class="nav-link">About</a>
+        </div>
+    </div>
+</nav>
+
+<!-- ─── HERO ───────────────────────────────────────── -->
+<header class="hero-section">
+    <div class="hero-inner container">
+        <div class="hero-badge">Machine Learning · Regression · Ames Housing Data</div>
+        <h1 class="hero-title">AI-Powered Property Valuation</h1>
+        <p class="hero-subtitle">Enter your property details and receive an instant estimated sale price, powered by Ridge Regression trained on 1,460 real Ames, Iowa homes.</p>
+        <div class="hero-cta">
+            <a href="#form" class="btn btn-primary">Predict a House Price</a>
+            <a href="/diagnostics" class="btn btn-ghost">View Model Diagnostics →</a>
+        </div>
+    </div>
+</header>
+
+<!-- ─── PREDICTION FORM ────────────────────────────── -->
+<main class="container" id="form">
+    <div class="form-card">
+
+        <div class="form-card-header">
+            <h2>Property Details</h2>
+            <p>Fill in the information below to generate an AI price estimate.</p>
+        </div>
+
+        <form id="prediction-form" novalidate>
+
+            <!-- PROPERTY -->
+            <div class="form-section">
+                <div class="form-section-label">
+                    <span class="section-number">01</span>
+                    <h3>Location &amp; Style</h3>
+                </div>
+                <div class="form-grid">
+                    <div class="input-group">
+                        <label for="Neighborhood">Neighborhood</label>
+                        <select id="Neighborhood" required>
+                            <option value="Blmngtn">Bloomington Heights</option>
+                            <option value="Blueste">Bluestem</option>
+                            <option value="BrDale">Briardale</option>
+                            <option value="BrkSide">Brookside</option>
+                            <option value="ClearCr">Clear Creek</option>
+                            <option value="CollgCr" selected>College Creek</option>
+                            <option value="Crawfor">Crawford</option>
+                            <option value="Edwards">Edwards</option>
+                            <option value="Gilbert">Gilbert</option>
+                            <option value="IDOTRR">Iowa DOT &amp; Rail Road</option>
+                            <option value="MeadowV">Meadow Village</option>
+                            <option value="Mitchel">Mitchell</option>
+                            <option value="NAmes">North Ames</option>
+                            <option value="NPkVill">Northpark Villa</option>
+                            <option value="NWAmes">Northwest Ames</option>
+                            <option value="NoRidge">Northridge</option>
+                            <option value="NridgHt">Northridge Heights</option>
+                            <option value="OldTown">Old Town</option>
+                            <option value="SWISU">South &amp; West of ISU</option>
+                            <option value="Sawyer">Sawyer</option>
+                            <option value="SawyerW">Sawyer West</option>
+                            <option value="Somerst">Somerset</option>
+                            <option value="StoneBr">Stone Brook</option>
+                            <option value="Timber">Timberland</option>
+                            <option value="Veenker">Veenker</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="HouseStyle">House Style</label>
+                        <select id="HouseStyle" required>
+                            <option value="1Story">One Story</option>
+                            <option value="1.5Fin">1.5 Story (Finished)</option>
+                            <option value="1.5Unf">1.5 Story (Unfinished)</option>
+                            <option value="2Story" selected>Two Story</option>
+                            <option value="2.5Fin">2.5 Story (Finished)</option>
+                            <option value="2.5Unf">2.5 Story (Unfinished)</option>
+                            <option value="SFoyer">Split Foyer</option>
+                            <option value="SLvl">Split Level</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="LotArea">Lot Area <span class="unit">sq ft</span></label>
+                        <input type="number" id="LotArea" value="8450" min="0" required>
+                    </div>
+                </div>
+            </div>
+
+            <!-- QUALITY -->
+            <div class="form-section">
+                <div class="form-section-label">
+                    <span class="section-number">02</span>
+                    <h3>Quality &amp; Condition</h3>
+                </div>
+                <div class="form-grid">
+                    <div class="input-group full-span">
+                        <label for="OverallQual">Overall Quality <span class="slider-val" id="qual-val">7</span>/10</label>
+                        <input type="range" id="OverallQual" value="7" min="1" max="10"
+                               oninput="document.getElementById('qual-val').textContent = this.value">
+                        <div class="range-labels"><span>Poor (1)</span><span>Excellent (10)</span></div>
+                    </div>
+                    <div class="input-group full-span">
+                        <label for="OverallCond">Overall Condition <span class="slider-val" id="cond-val">5</span>/10</label>
+                        <input type="range" id="OverallCond" value="5" min="1" max="10"
+                               oninput="document.getElementById('cond-val').textContent = this.value">
+                        <div class="range-labels"><span>Poor (1)</span><span>Excellent (10)</span></div>
+                    </div>
+                    <div class="input-group">
+                        <label for="KitchenQual">Kitchen Quality</label>
+                        <select id="KitchenQual" required>
+                            <option value="Ex">Excellent</option>
+                            <option value="Gd" selected>Good</option>
+                            <option value="TA">Typical / Average</option>
+                            <option value="Fa">Fair</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="YearBuilt">Year Built</label>
+                        <input type="number" id="YearBuilt" value="2003" min="1800" max="2026" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="YearRemodAdd">Year Remodeled</label>
+                        <input type="number" id="YearRemodAdd" value="2003" min="1800" max="2026" required>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SIZE -->
+            <div class="form-section">
+                <div class="form-section-label">
+                    <span class="section-number">03</span>
+                    <h3>Size &amp; Space</h3>
+                </div>
+                <div class="form-grid">
+                    <div class="input-group">
+                        <label for="GrLivArea">Living Area <span class="unit">sq ft</span></label>
+                        <input type="number" id="GrLivArea" value="1710" min="0" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="1stFlrSF">1st Floor Area <span class="unit">sq ft</span></label>
+                        <input type="number" id="1stFlrSF" value="856" min="0" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="2ndFlrSF">2nd Floor Area <span class="unit">sq ft</span></label>
+                        <input type="number" id="2ndFlrSF" value="854" min="0" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="TotalBsmtSF">Total Basement Area <span class="unit">sq ft</span></label>
+                        <input type="number" id="TotalBsmtSF" value="856" min="0" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="GarageArea">Garage Area <span class="unit">sq ft</span></label>
+                        <input type="number" id="GarageArea" value="548" min="0" required>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ROOMS -->
+            <div class="form-section">
+                <div class="form-section-label">
+                    <span class="section-number">04</span>
+                    <h3>Rooms</h3>
+                </div>
+                <div class="form-grid cols-4">
+                    <div class="input-group">
+                        <label for="BedroomAbvGr">Bedrooms</label>
+                        <input type="number" id="BedroomAbvGr" value="3" min="0" max="10" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="FullBath">Full Bathrooms</label>
+                        <input type="number" id="FullBath" value="2" min="0" max="6" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="HalfBath">Half Bathrooms</label>
+                        <input type="number" id="HalfBath" value="1" min="0" max="4" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="Fireplaces">Fireplaces</label>
+                        <input type="number" id="Fireplaces" value="0" min="0" max="5" required>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AMENITIES -->
+            <div class="form-section">
+                <div class="form-section-label">
+                    <span class="section-number">05</span>
+                    <h3>Amenities &amp; Garage</h3>
+                </div>
+                <div class="form-grid cols-3">
+                    <div class="input-group">
+                        <label for="GarageCars">Garage Capacity <span class="unit">cars</span></label>
+                        <input type="number" id="GarageCars" value="2" min="0" max="5" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="CentralAir">Central Air Conditioning</label>
+                        <select id="CentralAir" required>
+                            <option value="Y">Yes</option>
+                            <option value="N">No</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div id="form-error" class="alert-error hidden"></div>
+
+            <button type="submit" class="btn btn-primary btn-full" id="predict-btn">
+                <span class="btn-text">Generate Price Estimate</span>
+                <span class="btn-loading hidden">Estimating...</span>
+            </button>
+        </form>
+    </div>
+
+    <!-- ─── RESULT CARD ─────────────────────────────── -->
+    <div id="result-card" class="result-card hidden">
+
+        <div class="result-header">
+            <div class="result-tag">Estimated Property Value</div>
+            <h2 id="result-price" class="result-price">--</h2>
+            <p class="result-subtitle">Based on the property characteristics you provided.</p>
+        </div>
+
+        <div class="result-range-box">
+            <div class="range-info">
+                <div class="range-item">
+                    <span class="range-label">Typical Model Error</span>
+                    <span id="result-mae" class="range-value">±--</span>
+                </div>
+                <div class="range-divider"></div>
+                <div class="range-item">
+                    <span class="range-label">Estimated Price Range</span>
+                    <span id="result-range" class="range-value">-- – --</span>
+                </div>
+                <div class="range-divider"></div>
+                <div class="range-item">
+                    <span class="range-label">Price Segment</span>
+                    <span id="result-context" class="range-value context-badge">--</span>
+                </div>
+            </div>
+            <p class="range-disclaimer">This is an approximate statistical range derived from validation residuals, not a guaranteed price interval.</p>
+        </div>
+
+        <div class="result-summary">
+            <h4>Property Summary</h4>
+            <div class="summary-grid" id="summary-grid">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+
+        <div class="result-note">
+            This is a machine-learning estimate based on historical Ames, Iowa housing data and is not a professional property appraisal. Consult a licensed appraiser for official valuations.
+        </div>
+
+        <div class="result-actions">
+            <a href="/diagnostics" class="btn btn-ghost btn-sm">View Model Reliability →</a>
+            <button onclick="document.getElementById('result-card').classList.add('hidden'); window.scrollTo({top:0,behavior:'smooth'})" class="btn btn-outline btn-sm">New Prediction</button>
+        </div>
+    </div>
+
+    <!-- ─── ABOUT ─────────────────────────────────── -->
+    <section id="about" class="about-section">
+        <h2>About EstateAI</h2>
+        <div class="about-grid">
+            <div class="about-card">
+                <div class="about-icon">🏠</div>
+                <h4>Real Data</h4>
+                <p>Trained on 1,460 real residential property sales from Ames, Iowa (Kaggle dataset).</p>
+            </div>
+            <div class="about-card">
+                <div class="about-icon">🤖</div>
+                <h4>Ridge Regression</h4>
+                <p>Uses regularized linear regression to avoid overfitting across 19 engineered property features.</p>
+            </div>
+            <div class="about-card">
+                <div class="about-icon">🔒</div>
+                <h4>No Data Leakage</h4>
+                <p>Preprocessing is fitted only on training data. Test splits are never seen during model fitting.</p>
+            </div>
+        </div>
+    </section>
+</main>
+
+<script src="/static/js/app.js"></script>
+</body>
+</html>

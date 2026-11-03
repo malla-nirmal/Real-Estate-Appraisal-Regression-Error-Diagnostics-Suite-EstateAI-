@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EstateAI — Model Diagnostics</title>
+    <meta name="description" content="Understand how reliably EstateAI predicts house prices using MAE, RMSE, and R² across multiple test splits.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+    <div class="nav-inner">
+        <a href="/" class="logo">EstateAI</a>
+        <div class="nav-links">
+            <a href="/" class="nav-link">Predict</a>
+            <a href="/diagnostics" class="nav-link active">Diagnostics</a>
+            <a href="/#about" class="nav-link">About</a>
+        </div>
+    </div>
+</nav>
+
+<main class="container">
+
+    <!-- HERO -->
+    <header class="diag-hero">
+        <span class="badge">Model Diagnostics</span>
+        <h1>Understand How Reliable EstateAI Is</h1>
+        <p>These metrics describe the model's performance across many test houses — not any individual prediction.</p>
+    </header>
+
+    <!-- LOADING -->
+    <div id="loading-state" class="loading-box card">
+        <div class="spinner"></div>
+        <p>Loading model diagnostics...</p>
+    </div>
+
+    <!-- ERROR -->
+    <div id="error-state" class="alert-error hidden" style="text-align:center; padding:2rem;">
+        <p>Unable to load model diagnostics.</p>
+        <button onclick="loadDiagnostics()" class="btn btn-primary" style="margin-top:1rem;">Retry</button>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div id="diag-container" class="hidden">
+
+        <!-- 1. MODEL SUMMARY -->
+        <section class="card">
+            <h3 class="card-title">Model Summary</h3>
+            <div class="summary-tiles">
+                <div class="tile">
+                    <span class="tile-label">Training Samples</span>
+                    <strong id="d-rows" class="tile-value">--</strong>
+                </div>
+                <div class="tile">
+                    <span class="tile-label">Features Used</span>
+                    <strong id="d-features" class="tile-value">--</strong>
+                </div>
+                <div class="tile">
+                    <span class="tile-label">Model Type</span>
+                    <strong id="d-model" class="tile-value">--</strong>
+                </div>
+                <div class="tile">
+                    <span class="tile-label">Target</span>
+                    <strong class="tile-value">SalePrice</strong>
+                </div>
+                <div class="tile highlight">
+                    <span class="tile-label">Best R² (80/20)</span>
+                    <strong id="d-r2" class="tile-value green">--</strong>
+                </div>
+                <div class="tile">
+                    <span class="tile-label">Best MAE</span>
+                    <strong id="d-mae" class="tile-value">--</strong>
+                </div>
+                <div class="tile">
+                    <span class="tile-label">Best RMSE</span>
+                    <strong id="d-rmse" class="tile-value">--</strong>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. IMPORTANT DISTINCTION -->
+        <section class="card info-box">
+            <div class="info-box-icon">ℹ️</div>
+            <div>
+                <h4>Model Performance ≠ Individual Prediction</h4>
+                <p>The metrics below describe how the model performs <strong>across many test houses</strong>. They do not represent the exact error of any specific house you enter in the Predict page. Each individual prediction may differ from the actual price by more or less than the average MAE.</p>
+            </div>
+        </section>
+
+        <!-- 3. WHAT DO THESE METRICS MEAN? -->
+        <section>
+            <h2 class="section-heading">What Do These Metrics Mean?</h2>
+            <div class="metrics-explain-grid">
+                <div class="metric-explain-card card">
+                    <div class="mec-label">MAE</div>
+                    <div class="mec-name">Mean Absolute Error</div>
+                    <div id="mec-mae-val" class="mec-value">--</div>
+                    <p class="mec-desc">On average, the model's predictions are about <strong id="mec-mae-txt">--</strong> away from the actual selling price.</p>
+                    <div class="mec-tag lower">Lower is better</div>
+                </div>
+                <div class="metric-explain-card card">
+                    <div class="mec-label">RMSE</div>
+                    <div class="mec-name">Root Mean Squared Error</div>
+                    <div id="mec-rmse-val" class="mec-value">--</div>
+                    <p class="mec-desc">RMSE gives more importance to large mistakes. A higher RMSE means some predictions have larger errors than the MAE suggests.</p>
+                    <div class="mec-tag lower">Lower is better</div>
+                </div>
+                <div class="metric-explain-card card">
+                    <div class="mec-label">R²</div>
+                    <div class="mec-name">Variance Explained</div>
+                    <div id="mec-r2-val" class="mec-value green">--</div>
+                    <p class="mec-desc">R² shows how well the model explains differences in house prices. <strong id="mec-r2-txt">--</strong> means the model captures that share of price variation across the test data.</p>
+                    <div class="mec-tag higher">Higher is better</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. OVERALL PERFORMANCE / R² INDICATOR -->
+        <section class="card">
+            <h3 class="card-title">Overall Model Performance</h3>
+            <div class="perf-bar-header">
+                <span>Variance Explained (R²)</span>
+                <span id="perf-pct" class="perf-score">--%</span>
+            </div>
+            <div class="progress-track">
+                <div id="perf-fill" class="progress-fill"></div>
+            </div>
+            <p id="perf-label" class="perf-label">Good predictive performance</p>
+            <p class="perf-note">R² is not classification accuracy. It measures how much of the price variation the model captures. 85% means 85% of price differences are explained — not that 85% of predictions are "correct."</p>
+        </section>
+
+        <!-- 5. SPLIT COMPARISON TABLE -->
+        <section class="card">
+            <h3 class="card-title">Performance Across Different Test Splits</h3>
+            <p class="card-desc">The same model was evaluated on three different train/test splits to verify consistent performance.</p>
+            <div class="table-scroll">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Split</th>
+                            <th>MAE</th>
+                            <th>RMSE</th>
+                            <th>R² (Variance Explained)</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="splits-tbody"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 6. CHARTS -->
+        <h2 class="section-heading">Performance Charts</h2>
+        <div class="charts-two-col">
+            <div class="card chart-card">
+                <h3 class="card-title">MAE Across Test Splits</h3>
+                <div class="chart-box">
+                    <canvas id="maeChart"></canvas>
+                </div>
+            </div>
+            <div class="card chart-card">
+                <h3 class="card-title">RMSE Across Test Splits</h3>
+                <div class="chart-box">
+                    <canvas id="rmseChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- 7. ACTUAL VS PREDICTED -->
+        <section class="card">
+            <h3 class="card-title">Actual vs. Predicted Sale Prices</h3>
+            <p class="card-desc">Each point represents one house in the test set. Points closer to the diagonal line indicate predictions nearer to the actual selling price.</p>
+            <div class="chart-box-lg">
+                <canvas id="scatterChart"></canvas>
+            </div>
+        </section>
+
+        <!-- 8. RESIDUAL DISTRIBUTION -->
+        <section class="card">
+            <h3 class="card-title">Prediction Error Distribution</h3>
+            <p class="card-desc">Shows how prediction errors (actual − predicted) are spread. A distribution centred near $0 means the model is not systematically over- or under-estimating.</p>
+            <div class="chart-box-lg">
+                <canvas id="residualChart"></canvas>
+            </div>
+        </section>
+
+        <!-- 9. PREDICTION-SPECIFIC ERROR EXPLANATION -->
+        <section class="card">
+            <h3 class="card-title">How to Interpret a Prediction's Error Range</h3>
+            <div class="error-range-explainer">
+                <div class="ere-example">
+                    <div class="ere-row"><span>Example Estimated Price</span><strong>$245,000</strong></div>
+                    <div class="ere-row accent"><span>Typical Model Error (MAE)</span><strong id="ere-mae">±$19,673</strong></div>
+                    <div class="ere-row"><span>Estimated Price Range</span><strong id="ere-range">$225,327 – $264,673</strong></div>
+                </div>
+                <div class="ere-note">
+                    <p>This range is an approximate statistical guide derived from validation residuals. It is <strong>not</strong> a guaranteed price interval. Homes with unusual characteristics (very high/low quality, uncommon size) may see larger prediction errors.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 10. FEATURES ACCORDION -->
+        <section class="card">
+            <details class="accordion">
+                <summary class="accordion-summary">
+                    <h3 class="card-title" style="margin:0">What information does EstateAI use?</h3>
+                    <span class="chevron">▾</span>
+                </summary>
+                <div class="accordion-body">
+                    <p class="card-desc">The model evaluates 19 key property characteristics to estimate a sale price.</p>
+                    <div class="features-grid" id="features-grid"></div>
+                </div>
+            </details>
+        </section>
+
+        <!-- 11. LIMITATIONS -->
+        <section class="card warning-card">
+            <h3 class="card-title">⚠️ Important Limitations</h3>
+            <ul class="limitations-list">
+                <li>EstateAI is trained on historical housing data from Ames, Iowa. It may not generalise to other cities or time periods.</li>
+                <li>The model uses 19 selected features. Properties with highly unusual combinations may produce larger errors.</li>
+                <li>Model estimates should not replace a professional property appraisal for financial or legal purposes.</li>
+                <li>Ridge Regression assumes a linear relationship between features and price. Non-linear dynamics may not be fully captured.</li>
+            </ul>
+        </section>
+
+    </div><!-- /diag-container -->
+
+</main>
+
+<script src="/static/js/app.js"></script>
+<script>document.addEventListener("DOMContentLoaded", loadDiagnostics);</script>
+</body>
+</html>
